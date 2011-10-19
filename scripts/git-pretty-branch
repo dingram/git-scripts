@@ -1,0 +1,42 @@
+#!/bin/bash
+
+REMOTECOL=red
+LOCALCOL=yellow
+DEFAULTCOL=$LOCALCOL
+
+BPREFIX=refs/heads/
+MODE=1
+if [ "$1" == "-r" ]; then
+	BPREFIX=refs/remotes/
+	DEFAULTCOL=$REMOTECOL
+elif [ "$1" == "-a" ]; then
+	BPREFIX=
+	MODE=2
+fi
+BRANCH_OUTPUT="$( git branch "$@" | grep -v -- '->' | cut -c3- )"
+if [ $MODE -eq 2 ]; then
+	BRANCH_OUTPUT="$( echo "$BRANCH_OUTPUT" | sed -e 's!^!refs/heads/!; s!^refs/heads/remotes/!refs/remotes/!' )"
+fi
+SORTED_BRANCHES="$(echo "$BRANCH_OUTPUT" | while read BRANCH; do git --no-pager log --pretty=tformat:"%ci ${BRANCH}" -n1 ${BPREFIX}${BRANCH}; done | sort -r | cut -d' ' -f4)"
+if [ $MODE -eq 2 ]; then
+	SORTED_BRANCHES="$( echo "$SORTED_BRANCHES" | sed -re 's!^refs/heads/!-!; s!^refs/remotes/!#!' )"
+fi
+MAX_BRANCH_LEN="$(echo "$SORTED_BRANCHES" | wc -L)"
+if [ $MODE -eq 2 ]; then
+	MAX_BRANCH_LEN=$(( ${MAX_BRANCH_LEN} - 1 ))
+fi
+
+BRCOL=$DEFAULTCOL
+echo "$SORTED_BRANCHES" | while read BRANCH; do
+	if [ $MODE -eq 2 ]; then
+		BRTYPE=$( echo $BRANCH | cut -c1 )
+		BRANCH=$( echo $BRANCH | cut -c2- )
+		if [ "$BRTYPE" == "-" ]; then
+			BRCOL=$LOCALCOL
+		elif [ "$BRTYPE" == "#" ]; then
+			BRCOL=$REMOTECOL
+		fi
+	fi
+  BRNAME="$(printf "%-${MAX_BRANCH_LEN}s" $BRANCH)"
+  git --no-pager log --pretty=tformat:"%C($BRCOL)$BRNAME%Creset - %C(blue)%h%Creset %s %C(green)(%cr)%Creset %Cred<%an>%Creset" --abbrev-commit --date=relative -n1 ${BPREFIX}${BRANCH}
+done
