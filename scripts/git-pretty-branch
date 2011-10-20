@@ -21,7 +21,7 @@ SORTED_BRANCHES="$(echo "$BRANCH_OUTPUT" | while read BRANCH; do git --no-pager 
 if [ $MODE -eq 2 ]; then
 	SORTED_BRANCHES="$( echo "$SORTED_BRANCHES" | sed -re 's!^refs/heads/!-!; s!^refs/remotes/!#!' )"
 fi
-MAX_BRANCH_LEN="$(echo "$SORTED_BRANCHES" | wc -L)"
+MAX_BRANCH_LEN="$(echo "$SORTED_BRANCHES" | awk '{if (length > L) {L=length}} END {print L}')"
 if [ $MODE -eq 2 ]; then
 	MAX_BRANCH_LEN=$(( ${MAX_BRANCH_LEN} - 1 ))
 fi
