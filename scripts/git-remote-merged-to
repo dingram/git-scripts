@@ -1,0 +1,8 @@
+#!/bin/bash
+MERGED_TO=${1:-master}
+REMOTE=${2:-origin}
+
+for i in $(git branch -r | sed -rne '/->/d; /'${REMOTE}'\/.+\//{ s/\s*'${REMOTE}'\///; p; }'); do
+	echo -n "$i: "
+	git branch --contains ${REMOTE}/$i | cut -c3- | grep "^${MERGED_TO}\$" || echo
+done | grep " ${MERGED_TO}\$" | cut -d: -f1
