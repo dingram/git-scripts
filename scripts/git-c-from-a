@@ -1,0 +1,15 @@
+#!/bin/bash
+LOG_CMD="git log -1 --pretty=format:"
+export GIT_COMMITTER_NAME="$(${LOG_CMD}%an)"
+export GIT_COMMITTER_EMAIL="$(${LOG_CMD}%ae)"
+export GIT_COMMITTER_DATE="$(${LOG_CMD}%ad)"
+export GIT_EDITOR="grep -vE '^#'"
+
+echo "Author:        ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>"
+echo "AuthorDate:    ${GIT_COMMITTER_DATE}"
+echo "OldCommit:     $(${LOG_CMD}%cn) <$(${LOG_CMD}%ce)>"
+echo "OldCommitDate: $(${LOG_CMD}%cd)"
+echo "Commit:        ${GIT_COMMITTER_NAME} <${GIT_COMMITTER_EMAIL}>"
+echo "CommitDate:    ${GIT_COMMITTER_DATE}"
+echo
+git ci --amend
