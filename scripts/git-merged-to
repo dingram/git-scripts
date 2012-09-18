@@ -1,5 +1,5 @@
 #!/bin/bash
-MERGED_TO=${1:-master}
+MERGED_TO=$( echo "${1:-master}" | sed -e 's!/!\\/!g' )
 
 for i in $(git branch | cut -c3- | sed -re '/->/d; /^'${MERGED_TO}'$/d' ); do
 	echo -n "$i: "
